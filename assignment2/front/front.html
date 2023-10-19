@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Rock Paper Scissors</title>
+    <script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js/dist/web3.min.js"></script>
+</head>
+<body>
+    <h1>Rock Paper Scissors</h1>
+    <p>Bet Amount: 0.0001 tBNB</p>
+
+    <button onclick="playGame(1)">Rock</button>
+    <button onclick="playGame(2)">Paper</button>
+    <button onclick="playGame(3)">Scissors</button>
+
+    <h2>Game History</h2>
+    <ul id="gameHistory"></ul>
+
+    <script>
+        const web3 = new Web3(Web3.givenProvider);
+
+        const contractAddress = "YOUR_CONTRACT_ADDRESS"; // Replace with your contract address
+        const abi = [ /* Your ABI goes here */ ]; // Replace with your contract ABI
+
+        const contract = new web3.eth.Contract(abi, contractAddress);
+
+        function playGame(choice) {
+            web3.eth.getAccounts()
+                .then(accounts => {
+                    const account = accounts[0];
+                    if (account) {
+                        contract.methods.play(choice)
+                            .send({ from: account, value: web3.utils.toWei("0.0001", "ether") })
+                            .on("transactionHash", (hash) => {
+                                console.log("Transaction Hash: " + hash);
+                                updateGameHistory(account, choice);
+                            })
+                            .on("receipt", (receipt) => {
+                                console.log("Transaction Receipt: ", receipt);
+                            })
+                            .on("error", (error) => {
+                                console.error("Error: " + error.message);
+                            });
+                    } else {
+                        console.error("No Ethereum account detected. Please install MetaMask.");
+                    }
+                });
+        }
+
+        function updateGameHistory(player, choice) {
+            const gameHistory = document.getElementById("gameHistory");
+            const result = document.createElement("li");
+            result.textContent = `${player} chose ${getChoiceString(choice)}`;
+            gameHistory.appendChild(result);
+        }
+
+        function getChoiceString(choice) {
+            switch (choice) {
+                case 1:
+                    return "Rock";
+                case 2:
+                    return "Paper";
+                case 3:
+                    return "Scissors";
+                default:
+                    return "Unknown";
+            }
+        }
+    </script>
+</body>
+</html>
